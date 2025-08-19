@@ -205,11 +205,13 @@ export const floatingMenuSuggestion = (
         if (props.event.key === 'Escape') {
           popup[0].hide()
 
-          props.editor.storage.floatingCommand = {
-            ...props.editor.storage.floatingCommand,
-            isActive: false,
+          if (props.editor) {
+            props.editor.storage.floatingCommand = {
+              ...props.editor.storage.floatingCommand,
+              isActive: false,
+            }
+            props.editor.emit('floatingCommandUpdate')
           }
-          props.editor.emit('floatingCommandUpdate')
 
           return true
         }
