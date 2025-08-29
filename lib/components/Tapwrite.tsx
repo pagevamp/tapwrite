@@ -27,7 +27,6 @@ import { TableCell } from './tiptap/table/table-cell'
 import { Box, IconButton, Stack } from '@mui/material'
 import Hardbreak from '@tiptap/extension-hard-break'
 import Placeholder from '@tiptap/extension-placeholder'
-import { EditorState } from '@tiptap/pm/state'
 import { useAppState } from '../context/useAppState'
 import { AttachmentIcon } from '../icons'
 import { NotionLikeProps } from '../main'
@@ -258,22 +257,7 @@ export const Editor = ({
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content)
-
-      setTimeout(() => {
-        const { state, view } = editor
-
-        // Create a new EditorState without undo/redo history
-        // This is necessary because a history is set after setContent command is run. So when cmd+z is operated,
-        // it ends up in an empty state.
-        const newState = EditorState.create({
-          doc: state.doc,
-          plugins: state.plugins, // Preserve the plugins
-        })
-
-        // Replace the editor state with the new state (without history)
-        view.updateState(newState)
-      }, 0)
+      editor.commands.setContent(content, false) // no history entry
     }
   }, [content, editor])
 
