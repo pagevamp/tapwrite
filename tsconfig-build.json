@@ -1,6 +1,16 @@
 {
   "extends": "./tsconfig.json",
-  "include": [
-    "lib"
-  ]
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "module": "ESNext",
+    "target": "ES2019",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true
+  },
+  "include": ["lib"]
 }
