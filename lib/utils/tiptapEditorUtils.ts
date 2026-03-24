@@ -148,11 +148,14 @@ export class TiptapEditorUtils {
       .run()
   }
 
-  insertAutofill(content: string) {
+  insertAutofill(value: string) {
     this.editor
       .chain()
       .focus()
-      .insertContent(`<autofill>${content}</autofill> `)
+      .insertContent([
+        { type: 'autofillField', attrs: { value } },
+        { type: 'text', text: ' ' },
+      ])
       .run()
   }
 

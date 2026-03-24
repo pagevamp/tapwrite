@@ -1,38 +1,29 @@
 import { ReactRenderer } from '@tiptap/react'
-import tippy from 'tippy.js'
+import tippy, { type Instance, type Props as TippyProps } from 'tippy.js'
 import { AutofillMenu } from './AutofillMenu'
+import type { DynamicField, DynamicFieldDropdownComponent } from './autofill-field.types'
 
-
-export const autofillMenuSuggestion = {
-  items: async ({ query }: any) => {
-    return [
-      'not yet'
-    ]
-
-      .filter((item: any) =>
-        item.toLowerCase().replaceAll('{{', '').startsWith(query.toLowerCase()),
-      )
+export const autofillMenuSuggestion = (
+  dynamicFields: DynamicField[],
+  CustomDropdown?: DynamicFieldDropdownComponent,
+) => ({
+  items: ({ query }: { query: string }): DynamicField[] => {
+    const normalized = query.toLowerCase()
+    return dynamicFields
+      .filter((item) => item.label.toLowerCase().includes(normalized))
       .slice(0, 10)
   },
 
   char: '{{',
 
   render: () => {
-    let component: any
-    let popup: any
+    let component: ReactRenderer<{ onKeyDown: (args: { event: KeyboardEvent }) => boolean }> | null = null
+    let popup: Instance<TippyProps>[] | null = null
 
     return {
-      addAttributes() {
-        return {
-          customFields: {
-            default: [],
-          },
-        }
-      },
-
       onStart: (props: any) => {
         component = new ReactRenderer(AutofillMenu, {
-          props,
+          props: { ...props, CustomDropdown },
           editor: props.editor,
         })
 
@@ -52,31 +43,32 @@ export const autofillMenuSuggestion = {
       },
 
       onUpdate(props: any) {
-        component.updateProps(props)
+        component?.updateProps({ ...props, CustomDropdown })
 
         if (!props.clientRect) {
           return
         }
 
-        popup[0].setProps({
+        popup?.[0]?.setProps({
           getReferenceClientRect: props.clientRect,
         })
       },
 
       onKeyDown(props: any) {
         if (props.event.key === 'Escape') {
-          popup[0].hide()
-
+          popup?.[0]?.hide()
           return true
         }
 
-        return component?.ref?.onKeyDown(props)
+        return component?.ref?.onKeyDown(props) ?? false
       },
 
       onExit() {
-        popup[0].destroy()
-        component.destroy()
+        popup?.[0]?.destroy()
+        popup = null
+        component?.destroy()
+        component = null
       },
     }
   },
-}
+})

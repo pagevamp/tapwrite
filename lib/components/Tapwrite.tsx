@@ -1,6 +1,6 @@
 import { EditorContent, useEditor } from '@tiptap/react'
 import * as React from 'react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import Bold from '@tiptap/extension-bold'
 import BulletList from '@tiptap/extension-bullet-list'
@@ -67,6 +67,7 @@ export const Editor = ({
   parentContainerStyle,
   endButtons,
   editorRef,
+  dynamicFieldConfig,
 }: NotionLikeProps) => {
   const initialEditorContent = placeholder ?? 'Type "/" for commands'
 
@@ -79,6 +80,9 @@ export const Editor = ({
 
   const isTextInputClassName =
     'p-1.5 px-2.5  focus-within:border-black border-gray-300 bg-white border focus:border-black rounded-100  text-sm resize-y overflow-auto'
+
+  const autofillEnabled = !!(dynamicFieldConfig?.fields?.length)
+
   const editor = useEditor({
     editorProps: {
       attributes: {
@@ -86,7 +90,17 @@ export const Editor = ({
       },
     },
     extensions: [
-      AutofillExtension,
+      ...(autofillEnabled
+        ? [
+            AutofillExtension.configure({
+              dynamicFields: dynamicFieldConfig!.fields,
+              resolvedValues: dynamicFieldConfig!.resolvedValues ?? {},
+              showDynamicFieldValue: dynamicFieldConfig!.showResolved ?? false,
+              CustomDropdown: dynamicFieldConfig!.dropdownComponent,
+              TemplateComponent: dynamicFieldConfig!.templateComponent,
+            }),
+          ]
+        : []),
       IframeExtension.configure({
         allowFullscreen: true,
       }),
@@ -249,12 +263,18 @@ export const Editor = ({
     onFocus: () => onFocus && onFocus(),
   })
 
-  // useEffect(() => {
-  //   if (editor) {
-  //     editor.storage.MentionStorage.suggestions = suggestions;
-  //   }
-  // }, [suggestions, editor]);
-  // mention turned off for now
+  // Use ref for editor to avoid unnecessary dispatches when editor instance changes
+  const tiptapEditorRef = useRef(editor)
+  tiptapEditorRef.current = editor
+
+  // Sync dynamic field display when config props change
+  useEffect(() => {
+    if (!tiptapEditorRef.current || !autofillEnabled) return
+    tiptapEditorRef.current.storage.autofillField.resolvedValues = dynamicFieldConfig?.resolvedValues ?? {}
+    tiptapEditorRef.current.storage.autofillField.showDynamicFieldValue = dynamicFieldConfig?.showResolved ?? false
+    // Force all node views to re-render
+    tiptapEditorRef.current.view.dispatch(tiptapEditorRef.current.state.tr)
+  }, [dynamicFieldConfig?.resolvedValues, dynamicFieldConfig?.showResolved, autofillEnabled])
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
