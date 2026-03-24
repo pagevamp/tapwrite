@@ -4,6 +4,15 @@ import { AppContextProvider } from './context'
 import './globals.css'
 import { TiptapEditorUtils } from './utils/tiptapEditorUtils'
 import { RefObject } from 'react'
+import type {
+  DynamicField,
+  DynamicFieldConfig,
+  DynamicFieldDropdownComponent,
+  DynamicFieldDropdownProps,
+  HandlebarTemplateComponent,
+  HandlebarTemplateProps,
+  ResolvedValues,
+} from './components/tiptap/autofieldSelector/autofill-field.types'
 
 export interface NotionLikeProps {
   uploadFn?: (file: File) => Promise<string | undefined>
@@ -48,6 +57,8 @@ export interface NotionLikeProps {
   parentContainerStyle?: React.CSSProperties
   endButtons?: React.ReactNode
   editorRef?: RefObject<HTMLDivElement>
+  /** Config for dynamic fields / handlebars. Passing this enables the feature. */
+  dynamicFieldConfig?: DynamicFieldConfig
 }
 
 export const Tapwrite = ({
@@ -73,6 +84,7 @@ export const Tapwrite = ({
   parentContainerStyle,
   endButtons,
   editorRef,
+  dynamicFieldConfig,
 }: NotionLikeProps) => {
   return (
     <AppContextProvider>
@@ -99,9 +111,19 @@ export const Tapwrite = ({
         parentContainerStyle={parentContainerStyle}
         endButtons={endButtons}
         editorRef={editorRef}
+        dynamicFieldConfig={dynamicFieldConfig}
       />
     </AppContextProvider>
   )
 }
 
 export { TiptapEditorUtils }
+export type {
+  DynamicField,
+  DynamicFieldConfig,
+  DynamicFieldDropdownProps,
+  DynamicFieldDropdownComponent,
+  HandlebarTemplateProps,
+  HandlebarTemplateComponent,
+  ResolvedValues,
+}

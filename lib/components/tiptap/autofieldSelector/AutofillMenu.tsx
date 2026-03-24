@@ -1,99 +1,93 @@
 import * as React from 'react'
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
+import type { DynamicField, DynamicFieldDropdownComponent } from './autofill-field.types'
 
-const AutofillContainerBtn = ({
-  handleClick,
-  label,
-  focus,
+type AutofillMenuProps = {
+  items: DynamicField[]
+  command: (item: DynamicField) => void
+  CustomDropdown?: DynamicFieldDropdownComponent
+}
+
+const DefaultDropdownItem = ({
+  field,
+  focused,
+  onClick,
 }: {
-  handleClick: () => void
-  label: string
-  focus: boolean
+  field: DynamicField
+  focused: boolean
+  onClick: () => void
 }) => {
   return (
     <button
-      className={`flex flex-row gap-x-2.5 items-center py-1.5 px-3 cursor-pointer outline-none ${focus && 'bg-new-white-2'
-        } display-block`}
-      onClick={() => {
-        handleClick()
-      }}
+      className={`flex flex-row gap-x-2.5 items-center py-1.5 px-3 cursor-pointer outline-none w-full text-left ${
+        focused ? 'bg-new-white-2' : ''
+      }`}
+      onClick={onClick}
     >
-      <div>
-        <p className='text-sm'>{label}</p>
-      </div>
+      <p className="text-sm">{field.label}</p>
     </button>
   )
 }
 
-export const AutofillMenu = forwardRef((props: any, ref: any) => {
+export const AutofillMenu = forwardRef<
+  { onKeyDown: (args: { event: KeyboardEvent }) => boolean },
+  AutofillMenuProps
+>((props, ref) => {
+  const { items, command, CustomDropdown } = props
   const [selectedIndex, setSelectedIndex] = useState(0)
 
-  const selectItem = (index: any) => {
-    const item = props.items[index]
-
+  const selectItem = (index: number) => {
+    const item = items[index]
     if (item) {
-      props.command({ id: item })
+      command(item)
     }
   }
 
-  const upHandler = () => {
-    setSelectedIndex(
-      (selectedIndex + props.items.length - 1) % props.items.length,
-    )
-  }
-
-  const downHandler = () => {
-    setSelectedIndex((selectedIndex + 1) % props.items.length)
-  }
-
-  const enterHandler = () => {
-    selectItem(selectedIndex)
-  }
-
-  useEffect(() => setSelectedIndex(0), [props.items])
+  useEffect(() => setSelectedIndex(0), [items])
 
   useImperativeHandle(ref, () => ({
-    onKeyDown: ({ event }: any) => {
+    onKeyDown: ({ event }: { event: KeyboardEvent }) => {
       if (event.key === 'ArrowUp') {
-        upHandler()
+        setSelectedIndex((i) => (i - 1 + items.length) % items.length)
         return true
       }
-
       if (event.key === 'ArrowDown') {
-        downHandler()
+        setSelectedIndex((i) => (i + 1) % items.length)
         return true
       }
-
       if (event.key === 'Enter') {
-        enterHandler()
+        selectItem(selectedIndex)
         return true
       }
-
       return false
     },
   }))
 
-  const { items } = props
+  if (CustomDropdown) {
+    return (
+      <CustomDropdown
+        items={items}
+        onSelect={(field) => command(field)}
+        selectedIndex={selectedIndex}
+      />
+    )
+  }
 
   return (
-    <div className='flex flex-col gap-0.5 bg-white py-2 border border-new-card-border rounded shadow-vairant-1 w-fit overflow-hidden relative'>
-      {items && items?.length ? (
-        items.map((item: any, index: any) => (
-          <AutofillContainerBtn
-            key={index}
-            handleClick={() => {
-              selectItem(index)
-            }}
-            label={item}
-            focus={index === selectedIndex}
+    <div className="flex flex-col gap-0.5 bg-white py-2 border border-new-card-border rounded shadow-vairant-1 w-fit overflow-hidden relative max-h-72 overflow-y-auto min-w-[192px]">
+      {items.length > 0 ? (
+        items.map((field, index) => (
+          <DefaultDropdownItem
+            key={field.value}
+            field={field}
+            focused={index === selectedIndex}
+            onClick={() => selectItem(index)}
           />
         ))
       ) : (
-        <AutofillContainerBtn
-          label={'No Options'}
-          handleClick={() => { }}
-          focus={false}
-        />
+        <div className="py-1.5 px-3">
+          <p className="text-sm text-gray-400">No fields found</p>
+        </div>
       )}
     </div>
   )

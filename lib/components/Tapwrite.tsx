@@ -67,6 +67,7 @@ export const Editor = ({
   parentContainerStyle,
   endButtons,
   editorRef,
+  dynamicFieldConfig,
 }: NotionLikeProps) => {
   const initialEditorContent = placeholder ?? 'Type "/" for commands'
 
@@ -79,6 +80,9 @@ export const Editor = ({
 
   const isTextInputClassName =
     'p-1.5 px-2.5  focus-within:border-black border-gray-300 bg-white border focus:border-black rounded-100  text-sm resize-y overflow-auto'
+
+  const autofillEnabled = !!(dynamicFieldConfig?.fields?.length)
+
   const editor = useEditor({
     editorProps: {
       attributes: {
@@ -86,7 +90,17 @@ export const Editor = ({
       },
     },
     extensions: [
-      AutofillExtension,
+      ...(autofillEnabled
+        ? [
+            AutofillExtension.configure({
+              dynamicFields: dynamicFieldConfig!.fields,
+              resolvedValues: dynamicFieldConfig!.resolvedValues ?? {},
+              showDynamicFieldValue: dynamicFieldConfig!.showResolved ?? false,
+              CustomDropdown: dynamicFieldConfig!.dropdownComponent,
+              TemplateComponent: dynamicFieldConfig!.templateComponent,
+            }),
+          ]
+        : []),
       IframeExtension.configure({
         allowFullscreen: true,
       }),
@@ -249,12 +263,14 @@ export const Editor = ({
     onFocus: () => onFocus && onFocus(),
   })
 
-  // useEffect(() => {
-  //   if (editor) {
-  //     editor.storage.MentionStorage.suggestions = suggestions;
-  //   }
-  // }, [suggestions, editor]);
-  // mention turned off for now
+  // Sync dynamic field display when config props change
+  useEffect(() => {
+    if (!editor || !autofillEnabled) return
+    editor.storage.autofillField.resolvedValues = dynamicFieldConfig?.resolvedValues ?? {}
+    editor.storage.autofillField.showDynamicFieldValue = dynamicFieldConfig?.showResolved ?? false
+    // Force all node views to re-render
+    editor.view.dispatch(editor.state.tr)
+  }, [dynamicFieldConfig?.resolvedValues, dynamicFieldConfig?.showResolved, editor, autofillEnabled])
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
