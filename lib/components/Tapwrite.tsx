@@ -1,6 +1,6 @@
 import { EditorContent, useEditor } from '@tiptap/react'
 import * as React from 'react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import Bold from '@tiptap/extension-bold'
 import BulletList from '@tiptap/extension-bullet-list'
@@ -263,14 +263,18 @@ export const Editor = ({
     onFocus: () => onFocus && onFocus(),
   })
 
+  // Use ref for editor to avoid unnecessary dispatches when editor instance changes
+  const tiptapEditorRef = useRef(editor)
+  tiptapEditorRef.current = editor
+
   // Sync dynamic field display when config props change
   useEffect(() => {
-    if (!editor || !autofillEnabled) return
-    editor.storage.autofillField.resolvedValues = dynamicFieldConfig?.resolvedValues ?? {}
-    editor.storage.autofillField.showDynamicFieldValue = dynamicFieldConfig?.showResolved ?? false
+    if (!tiptapEditorRef.current || !autofillEnabled) return
+    tiptapEditorRef.current.storage.autofillField.resolvedValues = dynamicFieldConfig?.resolvedValues ?? {}
+    tiptapEditorRef.current.storage.autofillField.showDynamicFieldValue = dynamicFieldConfig?.showResolved ?? false
     // Force all node views to re-render
-    editor.view.dispatch(editor.state.tr)
-  }, [dynamicFieldConfig?.resolvedValues, dynamicFieldConfig?.showResolved, editor, autofillEnabled])
+    tiptapEditorRef.current.view.dispatch(tiptapEditorRef.current.state.tr)
+  }, [dynamicFieldConfig?.resolvedValues, dynamicFieldConfig?.showResolved, autofillEnabled])
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
