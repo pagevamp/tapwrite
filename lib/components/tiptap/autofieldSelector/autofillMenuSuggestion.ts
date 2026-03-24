@@ -22,6 +22,10 @@ export const autofillMenuSuggestion = (
 
     return {
       onStart: (props: any) => {
+        if (props.editor.storage.autofillField?.showDynamicFieldValue) {
+          return
+        }
+
         component = new ReactRenderer(AutofillMenu, {
           props: { ...props, CustomDropdown },
           editor: props.editor,
@@ -43,7 +47,9 @@ export const autofillMenuSuggestion = (
       },
 
       onUpdate(props: any) {
-        component?.updateProps({ ...props, CustomDropdown })
+        if (!component) return
+
+        component.updateProps({ ...props, CustomDropdown })
 
         if (!props.clientRect) {
           return
@@ -55,12 +61,14 @@ export const autofillMenuSuggestion = (
       },
 
       onKeyDown(props: any) {
+        if (!component) return false
+
         if (props.event.key === 'Escape') {
           popup?.[0]?.hide()
           return true
         }
 
-        return component?.ref?.onKeyDown(props) ?? false
+        return component.ref?.onKeyDown(props) ?? false
       },
 
       onExit() {
