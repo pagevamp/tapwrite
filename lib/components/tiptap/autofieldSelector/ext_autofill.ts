@@ -31,6 +31,7 @@ export interface AutofillExtensionOptions {
 
 export const AutofillExtension = Node.create<AutofillExtensionOptions>({
   name: 'autofillField',
+  priority: 150,
   group: 'inline',
   inline: true,
   atom: true,
@@ -103,27 +104,27 @@ export const AutofillExtension = Node.create<AutofillExtensionOptions>({
       this.options.CustomDropdown,
     )
 
-    return [
-      Suggestion<DynamicField>({
-        editor: this.editor,
-        pluginKey: autofillSuggestionKey,
-        char: suggestion.char,
-        items: suggestion.items,
+    const suggestionPlugin = Suggestion<DynamicField>({
+      editor: this.editor,
+      pluginKey: autofillSuggestionKey,
+      char: suggestion.char,
+      items: suggestion.items,
 
-        command: ({ editor, range, props }) => {
-          editor
-            .chain()
-            .focus()
-            .deleteRange(range)
-            .insertContent([
-              { type: this.name, attrs: { value: props.value } },
-              { type: 'text', text: ' ' },
-            ])
-            .run()
-        },
+      command: ({ editor, range, props }) => {
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .insertContent([
+            { type: this.name, attrs: { value: props.value } },
+            { type: 'text', text: ' ' },
+          ])
+          .run()
+      },
 
-        render: suggestion.render,
-      }),
-    ]
+      render: suggestion.render,
+    })
+
+    return [suggestionPlugin]
   },
 })
