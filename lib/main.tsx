@@ -118,6 +118,8 @@ export const Tapwrite = ({
 }
 
 export { TiptapEditorUtils }
+export { AutofillExtension } from './components/tiptap/autofieldSelector/ext_autofill'
+export type { AutofillExtensionOptions } from './components/tiptap/autofieldSelector/ext_autofill'
 export type {
   DynamicField,
   DynamicFieldConfig,
