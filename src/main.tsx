@@ -4,8 +4,10 @@ import { Tapwrite } from '../lib/main.tsx'
 
 const App = () => {
   const [content, setContent] = useState<string>(
-    '<p> ashdkasd </p> <img src = "https://picsum.photos/200/300" width ="75" height="112" /> <p> hello </p>'
+    '<p> ashdkasd </p> <img src = "https://picsum.photos/200/300" width ="75" height="112" /> <p> hello <a target="_blank" rel="noopener noreferrer" class="tapwrite-link" href="https://asdasdasd">asdasd</a> </p>'
   )
+
+  console.log(content)
   const editRef = useRef<HTMLDivElement>(null)
   return (
     <div style={{ padding: '1.5em' }}>
@@ -34,7 +36,7 @@ const App = () => {
         }}
         editorClass=''
         editorRef={editRef}
-        hardbreak
+readonly
       />
       <button
         onClick={() => {

@@ -84,12 +84,17 @@ export const LinkBubbleInput = ({
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       event.preventDefault()
+      event.stopPropagation()
       handleClose()
       return
     }
 
     if (event.key === 'Enter') {
+      // Stop the native Enter from reaching window-level listeners
+      // in host apps (e.g. submit-on-Enter in a comment form) — the
+      // link input has handled the keypress.
       event.preventDefault()
+      event.stopPropagation()
       handleSubmit()
     }
   }
