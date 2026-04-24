@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Popper } from '@mui/material'
+import { Popper, PopperPlacementType } from '@mui/material'
 import { Editor, isNodeSelection, posToDOMRect } from '@tiptap/core'
 
 type Props = {
@@ -7,6 +7,9 @@ type Props = {
   open: () => boolean
   children: React.ReactNode
   offset: number[]
+  placement?: PopperPlacementType
+  fallbackPlacements?: PopperPlacementType[]
+  id?: string
 }
 
 const ControlledBubbleMenu: React.FC<Props> = ({
@@ -14,11 +17,20 @@ const ControlledBubbleMenu: React.FC<Props> = ({
   open,
   children,
   offset,
+  placement = 'top',
+  fallbackPlacements = [
+    'bottom',
+    'top-start',
+    'bottom-start',
+    'top-end',
+    'bottom-end',
+  ],
+  id = 'controlled-bubble-menu',
 }: Props) => (
   <Popper
-    id='controlled-bubble-menu'
+    id={id}
     open={open()}
-    placement='top'
+    placement={placement}
     modifiers={[
       {
         name: 'offset',
@@ -32,13 +44,7 @@ const ControlledBubbleMenu: React.FC<Props> = ({
         enabled: true,
         options: {
           boundary: editor.options.element,
-          fallbackPlacements: [
-            'bottom',
-            'top-start',
-            'bottom-start',
-            'top-end',
-            'bottom-end',
-          ],
+          fallbackPlacements,
           padding: 8,
         },
       },

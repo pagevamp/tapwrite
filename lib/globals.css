@@ -107,8 +107,17 @@
 }
 
 .tiptap a {
-  text-decoration: underline;
-  color: blue;
+  color: #1164A3;
+  text-decoration: none;
+  font-weight: inherit;
+  cursor: pointer;
+}
+
+/* Synthetic highlight shown over the editor selection while the link input has focus */
+.selection-highlight {
+  background-color: Highlight;
+  color: HighlightText;
+  padding: 2.5px 0;
 }
 
 .tiptap ul,

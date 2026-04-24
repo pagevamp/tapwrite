@@ -1,6 +1,6 @@
 import { EditorContent, useEditor } from '@tiptap/react'
 import * as React from 'react'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import Bold from '@tiptap/extension-bold'
 import BulletList from '@tiptap/extension-bullet-list'
@@ -10,7 +10,6 @@ import Document from '@tiptap/extension-document'
 import Heading from '@tiptap/extension-heading'
 import History from '@tiptap/extension-history'
 import Italic from '@tiptap/extension-italic'
-import Link from '@tiptap/extension-link'
 import ListItem from '@tiptap/extension-list-item'
 import OrderedList from '@tiptap/extension-ordered-list'
 import Paragraph from '@tiptap/extension-paragraph'
@@ -41,6 +40,10 @@ import FloatingCommandExtension from './tiptap/floatingMenu/floatingCommandExten
 import { floatingMenuSuggestion } from './tiptap/floatingMenu/floatingMenuSuggestion'
 import { IframeExtension } from './tiptap/iframe/ext_iframe'
 import { UploadImage } from './tiptap/image/imageUpload'
+import { LinkExt } from './tiptap/link/linkExt'
+import LinkBubbleInput from './tiptap/link/LinkBubbleInput'
+import LinkPreviewBubble from './tiptap/link/LinkPreviewBubble'
+import type { Editor as CoreEditor } from '@tiptap/core'
 // import suggestion from "../components/tiptap/mention/suggestion.ts";
 // import { MentionStorage } from "./tiptap/mention/MentionStorage.extension.ts";
 // mention turned off for now
@@ -82,6 +85,37 @@ export const Editor = ({
     'p-1.5 px-2.5  focus-within:border-black border-gray-300 bg-white border focus:border-black rounded-100  text-sm resize-y overflow-auto'
 
   const autofillEnabled = !!(dynamicFieldConfig?.fields?.length)
+
+  const [showLinkInput, setShowLinkInput] = useState(false)
+  const [linkHasTextSelection, setLinkHasTextSelection] = useState(false)
+  const [linkEditHref, setLinkEditHref] = useState<string | null>(null)
+  const [activeLinkHref, setActiveLinkHref] = useState<string | null>(null)
+
+  // Ref the floating-menu suggestion closure reads, so it always calls the latest setters
+  const linkStateSettersRef = useRef({
+    setShowLinkInput,
+    setLinkHasTextSelection,
+    setLinkEditHref,
+  })
+  linkStateSettersRef.current = {
+    setShowLinkInput,
+    setLinkHasTextSelection,
+    setLinkEditHref,
+  }
+
+  const triggerLinkInput = useCallback((editorInstance: CoreEditor) => {
+    const hasSelection = !editorInstance.state.selection.empty
+    linkStateSettersRef.current.setLinkHasTextSelection(hasSelection)
+    if (hasSelection && editorInstance.isActive('link')) {
+      const existingHref = editorInstance.getAttributes('link').href as
+        | string
+        | undefined
+      linkStateSettersRef.current.setLinkEditHref(existingHref ?? null)
+    } else {
+      linkStateSettersRef.current.setLinkEditHref(null)
+    }
+    linkStateSettersRef.current.setShowLinkInput(true)
+  }, [])
 
   const editor = useEditor({
     editorProps: {
@@ -178,7 +212,7 @@ export const Editor = ({
         },
       }),
       FloatingCommandExtension.configure({
-        suggestion: floatingMenuSuggestion(uploadFn),
+        suggestion: floatingMenuSuggestion(uploadFn, triggerLinkInput),
       }),
       Placeholder.configure({
         placeholder: ({ node }) => {
@@ -195,11 +229,7 @@ export const Editor = ({
           return initialEditorContent
         },
       }),
-      Link.extend({
-        exitable: true,
-      }).configure({
-        autolink: false,
-      }),
+      LinkExt,
       OrderedList.configure({
         itemTypeName: 'listItem',
         keepMarks: true,
@@ -332,6 +362,33 @@ export const Editor = ({
     editor.off('transaction', updateActiveStatus)
   }, [editor, onActiveStatusChange])
 
+  // Track whether the cursor is inside a link mark so we can show the preview bubble
+  useEffect(() => {
+    if (!editor) return
+    const updateActiveLinkHref = () => {
+      if (editor.isActive('link')) {
+        const href = editor.getAttributes('link').href as string | undefined
+        setActiveLinkHref(href ?? null)
+      } else {
+        setActiveLinkHref(null)
+      }
+    }
+    editor.on('selectionUpdate', updateActiveLinkHref)
+    editor.on('transaction', updateActiveLinkHref)
+    return () => {
+      editor.off('selectionUpdate', updateActiveLinkHref)
+      editor.off('transaction', updateActiveLinkHref)
+    }
+  }, [editor])
+
+  const showLinkPreview = !!activeLinkHref && !showLinkInput && !readonly
+
+  const handleChangeFromPreview = useCallback(() => {
+    setLinkEditHref(activeLinkHref)
+    setLinkHasTextSelection(true)
+    setShowLinkInput(true)
+  }, [activeLinkHref])
+
   if (!editor) return null
 
   return (
@@ -353,6 +410,7 @@ export const Editor = ({
             <ControlledBubbleMenu
               editor={editor}
               open={() => {
+                if (showLinkInput || showLinkPreview) return false
                 const { view, state } = editor
                 const { from, to } = view.state.selection
                 const text = state.doc.textBetween(from, to, '')
@@ -362,6 +420,37 @@ export const Editor = ({
               offset={[0, 10]}
             >
               <BubbleMenuContainer editor={editor} />
+            </ControlledBubbleMenu>
+            <ControlledBubbleMenu
+              editor={editor}
+              id='link-input-bubble-menu'
+              open={() => showLinkInput}
+              offset={[0, 8]}
+              placement='top-start'
+              fallbackPlacements={['bottom-start', 'top', 'bottom']}
+            >
+              <LinkBubbleInput
+                editor={editor}
+                showLinkInput={showLinkInput}
+                setShowLinkInput={setShowLinkInput}
+                hasTextSelection={linkHasTextSelection}
+                editHref={linkEditHref}
+                setEditHref={setLinkEditHref}
+              />
+            </ControlledBubbleMenu>
+            <ControlledBubbleMenu
+              editor={editor}
+              id='link-preview-bubble-menu'
+              open={() => showLinkPreview}
+              offset={[0, 8]}
+              placement='bottom-start'
+              fallbackPlacements={['top-start', 'bottom', 'top']}
+            >
+              <LinkPreviewBubble
+                editor={editor}
+                href={activeLinkHref ?? ''}
+                onChange={handleChangeFromPreview}
+              />
             </ControlledBubbleMenu>
           </div>
         )}

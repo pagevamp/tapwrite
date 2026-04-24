@@ -11,6 +11,7 @@ import {
   CalloutIcon,
   TableIcon,
   ImageUploadIcon,
+  LinkIconSDS,
 } from './../../../icons'
 
 import { useAppState } from '../../../context/useAppState'
@@ -58,6 +59,10 @@ const FloatingContainerBtn = ({
           <TableIcon />
         ) : label === 'Callout' ? (
           <CalloutIcon />
+        ) : label === 'Link' ? (
+          <span className='text-[#6B6F76] flex'>
+            <LinkIconSDS size={14} />
+          </span>
         ) : (
           <></>
         )}
