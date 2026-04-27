@@ -258,6 +258,48 @@ export const LinkIcon = () => {
   )
 }
 
+// Mirrors the Link icon from @assembly-js/design-system.
+export const LinkIconSDS = ({
+  size = 16,
+  color = 'currentColor',
+}: { size?: number; color?: string } = {}) => {
+  return (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      fill='none'
+      viewBox='0 0 20 20'
+      width={size}
+      height={size}
+    >
+      <path
+        fill={color}
+        d='M14.844 4.104c-.743 0-1.465.24-2.06.674a7 7 0 0 0-1.333-1.066 5.156 5.156 0 0 1 7.039 7.528l-2.747 2.746a5.157 5.157 0 0 1-8.476-5.448.836.836 0 0 1 1.566.58 3.49 3.49 0 0 0 5.733 3.69l2.746-2.745a3.49 3.49 0 0 0-2.469-5.958M7.899 6.05a3.5 3.5 0 0 0-2.465 1.02L2.688 9.816a3.49 3.49 0 0 0 2.468 5.955c.743 0 1.466-.24 2.06-.674.395.41.846.768 1.333 1.066A5.156 5.156 0 0 1 1.51 8.635L4.257 5.89a5.157 5.157 0 0 1 8.476 5.448.836.836 0 0 1-1.566-.58A3.49 3.49 0 0 0 7.9 6.049'
+      />
+    </svg>
+  )
+}
+
+// Mirrors the Text icon from @assembly-js/design-system.
+export const TextIconSDS = ({
+  size = 16,
+  color = 'currentColor',
+}: { size?: number; color?: string } = {}) => {
+  return (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      fill='none'
+      viewBox='0 0 20 20'
+      width={size}
+      height={size}
+    >
+      <path
+        fill={color}
+        d='M3.714 3.714V5.43a.855.855 0 0 1-.857.857A.855.855 0 0 1 2 5.429v-2C2 2.639 2.64 2 3.429 2H16.57C17.361 2 18 2.64 18 3.429v2a.855.855 0 0 1-.857.857.855.855 0 0 1-.857-.857V3.714h-5.429v12.572h1.714c.475 0 .858.382.858.857a.855.855 0 0 1-.858.857H7.43a.855.855 0 0 1-.858-.857c0-.475.383-.857.858-.857h1.714V3.714z'
+      />
+    </svg>
+  )
+}
+
 export const CalloutIcon = () => {
   return (
     <svg

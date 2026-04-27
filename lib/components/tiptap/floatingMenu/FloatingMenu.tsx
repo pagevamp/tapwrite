@@ -11,6 +11,7 @@ import {
   CalloutIcon,
   TableIcon,
   ImageUploadIcon,
+  LinkIconSDS,
 } from './../../../icons'
 
 import { useAppState } from '../../../context/useAppState'
@@ -58,6 +59,10 @@ const FloatingContainerBtn = ({
           <TableIcon />
         ) : label === 'Callout' ? (
           <CalloutIcon />
+        ) : label === 'Link' ? (
+          <span className='text-[#6B6F76] flex'>
+            <LinkIconSDS size={14} />
+          </span>
         ) : (
           <></>
         )}
@@ -136,6 +141,10 @@ export const FloatingMenu = forwardRef((props: any, ref: any) => {
       }
 
       if (event.key === 'Enter') {
+        // Stop the native Enter from reaching window-level listeners
+        // in host apps (e.g. submit-on-Enter in a comment form) — the
+        // slash menu has handled the keypress, so nothing else should.
+        event.stopPropagation()
         enterHandler()
         return true
       }

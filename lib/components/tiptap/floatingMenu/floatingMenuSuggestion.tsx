@@ -5,7 +5,8 @@ import { FloatingMenu } from './FloatingMenu'
 import { TiptapEditorUtils } from './../../../utils/tiptapEditorUtils'
 
 export const floatingMenuSuggestion = (
-  uploadFn?: (file: File) => Promise<string | undefined> | undefined
+  uploadFn?: (file: File) => Promise<string | undefined> | undefined,
+  onTriggerLink?: (editor: Editor) => void
 ) => ({
   items: ({ query }: any) => {
     const normalizedQuery = query.toLowerCase().replace(' ', '')
@@ -56,6 +57,14 @@ export const floatingMenuSuggestion = (
           const tiptapEditorUtils = new TiptapEditorUtils(editor)
           tiptapEditorUtils.deleteRange(range)
           tiptapEditorUtils.toggleNumberedList()
+        },
+      },
+      {
+        title: 'Link',
+        command: ({ editor, range }: { editor: Editor; range: any }) => {
+          const tiptapEditorUtils = new TiptapEditorUtils(editor)
+          tiptapEditorUtils.deleteRange(range)
+          onTriggerLink?.(editor)
         },
       },
       // {
