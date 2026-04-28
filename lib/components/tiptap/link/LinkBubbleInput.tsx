@@ -63,7 +63,11 @@ export const LinkBubbleInput = ({
 
     const href = ensureHttps(url.trim())
 
-    if (hasTextSelection) {
+    if (editHref) {
+      // Editing an existing link — extendMarkRange covers the full link
+      // mark even if the selection has collapsed since the popover opened.
+      editor.chain().focus().extendMarkRange('link').setLink({ href }).run()
+    } else if (hasTextSelection) {
       editor.chain().focus().setLink({ href }).run()
     } else {
       const text = displayText.trim() || href
